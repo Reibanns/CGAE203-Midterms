@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,21 +6,18 @@ public class Snake : MonoBehaviour
     private Vector2 _direction = Vector2.right;
     private Vector3 targetPosition; // Next position on the grid
     private float moveSpeed = 5.0f; // Speed of movement (higher = faster)
-    private List<Transform> _segments;
+    private List<Vector3> _positions; // Tracks all segment positions
+    public List<Transform> _segments;
 
-    // Start is called before the first frame update
     void Start()
     {
-        // Initialize the target position to the current grid-aligned position
         targetPosition = transform.position;
-        _segments = new List<Transform>();
-        _segments.Add(this.transform);
+        _positions = new List<Vector3> { targetPosition }; // Initialize with the snake head's position
+        _segments = new List<Transform> { this.transform };
     }
 
-    // Update is called once per frame
     void Update()
     {
-        // Handle input for direction changes
         if (Input.GetKeyDown(KeyCode.W) && _direction != Vector2.down)
         {
             _direction = Vector2.up;
@@ -43,30 +38,50 @@ public class Snake : MonoBehaviour
 
     private void FixedUpdate()
     {
-
-        for (int i = _segments.Count - 1; i > 0; i--)
-        {
-            _segments[i].position = Vector3.MoveTowards(_segments[i - 1].position, targetPosition, moveSpeed * Time.deltaTime);
-        }
-        // If the snake has reached its target position, update to the next grid position
+        // If the head has reached its target position, calculate the next grid-aligned position
         if (Vector3.Distance(transform.position, targetPosition) < 0.01f)
         {
-            targetPosition = new Vector3(
-                Mathf.Round(targetPosition.x) + _direction.x,
-                Mathf.Round(targetPosition.y) + _direction.y,
-                0.0f
-            );
+            targetPosition += new Vector3(_direction.x, _direction.y, 0);
+            _positions.Insert(0, targetPosition); // Add the new position to the list
+            _positions.RemoveAt(_positions.Count - 1); // Remove the oldest position
         }
 
-        // Smoothly move towards the target position
+        // Move the snake's head smoothly towards the target position
         transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.fixedDeltaTime);
-        
+
+        // Update each segment's position to follow the segment ahead
+        for (int i = 1; i < _segments.Count; i++)
+        {
+            _segments[i].position = Vector3.MoveTowards(
+                _segments[i].position,
+                _positions[i],
+                moveSpeed * Time.fixedDeltaTime
+            );
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        other.transform.position = _segments[_segments.Count - 1].position;
-        _segments.Add(other.transform);
-        
+        if (other.GetComponent<Food>() != null)
+        {
+            other.transform.position = _positions[_positions.Count - 1]; // Place the new segment at the last segment's position
+            Destroy(other.GetComponent<Food>());
+            other.GetComponent<SpriteRenderer>().color = Color.red;
+            other.tag = "Segment";
+
+            _segments.Add(other.transform); // Add the new segment to the list
+            _positions.Add(other.transform.position); // Track its position
+        }
+    }
+    
+    public void ResetSnake()
+    {
+        _positions.Clear();
+        _positions.Add(transform.position);
+
+        _segments.Clear();
+        _segments.Add(this.transform);
+
+        Debug.Log("Snake reset: Positions and segments cleared.");
     }
 }

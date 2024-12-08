@@ -16,7 +16,7 @@ public class Food : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {   
-            Debug.Log("Player entered");
+            // Debug.Log("Player entered");
             _foodSpawner.SpawnFood(); // Call SpawnFood on the assigned spawner
             // Destroy(gameObject); // Destroy the current food
         }

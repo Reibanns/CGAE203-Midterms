@@ -490,7 +490,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &765464865
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -503,7 +503,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 126349b8e47613b49a5d6eb9ccac81a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTilePrefab: {fileID: 7210742762948558351, guid: c24d32a3ac6f27a439494d29e5090ee2, type: 3}
+  xposition: 0
+  yposition: 0
+  goals:
+  - {fileID: 7687262875838117131, guid: 9827f688e62f7bc4ea9757b88e3f8908, type: 3}
+  - {fileID: 7927314048095080892, guid: f5af5ca666722fa4f971c82a9f0daf3d, type: 3}
+  - {fileID: 3847783857354955871, guid: 94e7f1805505b784db71c4d93d863836, type: 3}
 --- !u!4 &765464866
 Transform:
   m_ObjectHideFlags: 0
