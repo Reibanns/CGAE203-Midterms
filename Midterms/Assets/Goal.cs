@@ -1,43 +1,70 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Goal : MonoBehaviour
 {
-    public int totalSegments = -1, count = 0;
+    public int totalSegments = -1;
+    private HashSet<Collider2D> enteredSegments = new HashSet<Collider2D>(); // Track unique colliders
+    private ScoreScript sc;
+
+    void Start()
+    {
+        sc = GameObject.Find("ScoreManager").GetComponent<ScoreScript>();
+    }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.tag == "Player")
-        {
-            return;
-        }
-        // Update total segments
+        if (other.CompareTag("Player")) return;
+
+        // Update total segments count
         totalSegments = GameObject.FindGameObjectsWithTag("Segment").Length;
 
         if (other.CompareTag("Segment"))
         {
-            count++;
-            Debug.Log("Segment Entered");
+            if (!enteredSegments.Contains(other)) // Prevent duplicate entries
+            {
+                enteredSegments.Add(other);
+                Debug.Log("Segment Entered");
+            }
         }
 
-        // Check if all segments have entered
-        if (count == totalSegments)
+        CheckAllSegmentsEntered();
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Segment"))
+        {
+            if (enteredSegments.Contains(other)) // Remove only tracked segments
+            {
+                enteredSegments.Remove(other);
+                Debug.Log("Segment Exited");
+            }
+        }
+    }
+
+    private void CheckAllSegmentsEntered()
+    {
+        if (enteredSegments.Count == totalSegments)
         {
             Debug.Log("All segments entered. Clearing segments...");
-
-            // Find all segments and destroy them
+            sc.AddScore(enteredSegments.Count);
+            
+            // Destroy all segments
             GameObject[] segments = GameObject.FindGameObjectsWithTag("Segment");
             foreach (GameObject segment in segments)
             {
                 Destroy(segment);
             }
 
+            // Reset the snake state
             Snake snake = FindObjectOfType<Snake>();
             if (snake != null)
             {
-                snake.ResetSnake(); // Reset the snake state after clearing
+                snake.ResetSnake();
             }
 
-            // Spawn a new goal using the GoalSpawner
+            // Spawn a new goal
             GoalSpawner spawner = FindObjectOfType<GoalSpawner>();
             if (spawner != null)
             {
@@ -48,8 +75,11 @@ public class Goal : MonoBehaviour
                 Debug.LogError("No GoalSpawner found in the scene.");
             }
 
-            // Reset counters
-            count = 0;
+            // Update the score
+            
+
+            // Reset everything
+            enteredSegments.Clear();
             totalSegments = -1;
 
             Debug.Log("Segments cleared and new goal spawned.");
