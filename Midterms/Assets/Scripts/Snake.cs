@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Snake : MonoBehaviour
 {
@@ -105,6 +106,7 @@ public class Snake : MonoBehaviour
             else
             {
                 Debug.Log("Game Over");
+                Invoke("GameOver", 1f);
             }
             
             
@@ -122,5 +124,10 @@ public class Snake : MonoBehaviour
         tailValue = 0;
 
         Debug.Log("Snake reset: Positions and segments cleared.");
+    }
+
+    void GameOver()
+    {
+        SceneManager.LoadScene("TitleScreen");
     }
 }
