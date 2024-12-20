@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System.Collections;
 using UnityEngine.SceneManagement;
 
 public class Snake : MonoBehaviour
@@ -10,6 +11,7 @@ public class Snake : MonoBehaviour
     private List<Vector3> _positions; // Tracks all segment positions
     public List<Transform> _segments;
     public int tailValue = 0;
+    public GameObject gameOver;
     
     private FoodValue foodValue;
 
@@ -106,7 +108,9 @@ public class Snake : MonoBehaviour
             else
             {
                 Debug.Log("Game Over");
-                Invoke("GameOver", 1f);
+                StartCoroutine(HandleGameOver());
+                //Time.timeScale = 0f;
+                //Invoke("GameOver", 3f);
             }
             
             
@@ -125,7 +129,25 @@ public class Snake : MonoBehaviour
 
         Debug.Log("Snake reset: Positions and segments cleared.");
     }
+    
+    private IEnumerator HandleGameOver()
+    {
+        gameOver.SetActive(true);
+        // Freeze the game by pausing time
+        Time.timeScale = 0f;
 
+        // Show Game Over text (optional)
+        Debug.Log("Game Over - Freezing screen for 2 seconds...");
+
+        // Wait for 2 seconds in real time
+        yield return new WaitForSecondsRealtime(2f);
+
+        // Unfreeze the game and load the title screen
+        Time.timeScale = 1f;
+        gameOver.SetActive(false);
+        SceneManager.LoadScene("TitleScreen");
+    }
+    
     void GameOver()
     {
         SceneManager.LoadScene("TitleScreen");

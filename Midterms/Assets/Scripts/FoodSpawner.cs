@@ -12,6 +12,7 @@ public class FoodSpawner : MonoBehaviour
 
     public List<GameObject> foods = new List<GameObject>(); // The food prefabs for letters b to z
     private Queue<GameObject> spawnQueue = new Queue<GameObject>(); // Ordered shuffled queue
+    private HashSet<Vector3> occupiedPositions = new HashSet<Vector3>(); // Track occupied grid spaces
 
     private float elapsedTime = 0f;
     private float spawnInterval = 3f; // Initial spawn interval
@@ -25,6 +26,7 @@ public class FoodSpawner : MonoBehaviour
     // Shuffle only the first 5 elements and enqueue everything in order
     private void InitializeSpawnQueue()
     {
+        spawnQueue.Clear(); // Clear the queue before reinitializing
         List<GameObject> firstFive = foods.GetRange(0, Mathf.Min(5, foods.Count));
         ShuffleList(firstFive);
 
@@ -44,8 +46,14 @@ public class FoodSpawner : MonoBehaviour
     // Coroutine to spawn food over time with increasing rate
     private IEnumerator SpawnFoodWithIncreasingRate()
     {
-        while (elapsedTime < spawnTimeCap && spawnQueue.Count > 0)
+        while (elapsedTime < spawnTimeCap)
         {
+            if (spawnQueue.Count == 0)
+            {
+                // Reinitialize the queue if all foods have been spawned
+                InitializeSpawnQueue();
+            }
+
             // Spawn the next food object
             SpawnFood();
 
@@ -61,12 +69,29 @@ public class FoodSpawner : MonoBehaviour
     {
         if (spawnQueue.Count == 0) return; // Ensure there are foods to spawn
 
-        Vector3 randomPosition = new Vector3(
-            Random.Range(0, gridWidth),
-            Random.Range(0, gridHeight),
-            0
-        );
+        // Find a valid position that is not already occupied
+        Vector3 randomPosition = Vector3.zero;
+        int attempts = 0;
+        do
+        {
+            randomPosition = new Vector3(
+                Random.Range(0, gridWidth),
+                Random.Range(0, gridHeight),
+                0
+            );
+            attempts++;
+        } while (occupiedPositions.Contains(randomPosition) && attempts < 100);
 
+        if (attempts >= 100)
+        {
+            Debug.LogWarning("Could not find a free position to spawn food.");
+            return;
+        }
+
+        // Mark the position as occupied
+        occupiedPositions.Add(randomPosition);
+
+        // Spawn the food at the selected position
         GameObject nextFood = spawnQueue.Dequeue(); // Get the next food object
         Instantiate(nextFood, randomPosition, Quaternion.identity);
     }
